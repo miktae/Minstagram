@@ -2,9 +2,9 @@
     margin-bottom: 24px;
     border-radius: 3px;
     border: 1px solid #dbdbdb;
-    margin-left: -1px;
-    margin-right: -1px;
+    margin-left: 20%;
     background-color: #fff;
+    min-width: 600px;
 }
 
 .post__header {

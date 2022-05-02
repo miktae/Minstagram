@@ -25,7 +25,11 @@ export default function PostItem(props) {
       </div>
       {/* image */}
       <div className="post__image">
-        <img src={ props.imageSrc } alt="p-1" />
+        {
+          props.imageSrc.includes(".mp4") ? <video controls>
+            <source src={props.imageSrc} type="video/mp4" />
+          </video> : <img src={props.imageSrc} alt="post" />
+        }
       </div>
       <div className="post__group-bottom">
         {/* Group of interactive icons */}

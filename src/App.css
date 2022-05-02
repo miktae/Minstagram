@@ -13,3 +13,35 @@ a {
   width: 100%;
   margin-right: 28px;
 }
+
+.btn {
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-login {
+  background-color: #0095f6;
+  color: #fff;
+  transition: all 0.5s ease;
+  font-weight: 600;
+}
+
+.btn-login:hover {
+  opacity: 0.8;
+}
+
+.btn-sign-up {
+  background-color: #fff;
+  color: #0095f6;
+  font-weight: 600;
+}
+
+.form__group{
+  padding-bottom: 1.2rem;
+}
+
+.form__login .form__group{
+  margin: 0.75rem;
+}

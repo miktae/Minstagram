@@ -38,35 +38,18 @@
 }
 
 .header__search input {
-    font-size: 14px;
-    border: solid 1px #dbdbdb;
+    font-size: 16px;
+    border: solid 1px #efefef;
     outline: none;
-    padding: 3px 10px 3px 26px;
+    padding: 6px 13px 6px 30px;
     z-index: 2;
     color: #262626;
-    background-color: #fafafa;
+    background-color: #efefef;
+    border-radius: 4px;
 }
 
 .header__search i.bx-search-alt-2 {
     position: absolute;
     z-index: 15;
     padding-left: 10px;
-}
-
-.btn {
-    padding: 5px 15px;
-    border: 1px solid transparent;
-    border-radius: 4;
-    cursor: pointer;
-}
-
-.btn-login {
-    background-color: #0095f6;
-    color: #fff;
-    transition: all 0.5s ease;
-    font-weight: 600;
-}
-
-.btn-login:hover {
-    opacity: 0.8;
 }
