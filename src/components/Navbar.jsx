@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { auth } from "../firebase";
 import {
 	signOut
-  } from "firebase/auth";
+} from "firebase/auth";
 import "./Navbar.css";
 
 export default function Navbar(props) {
 	const [openModal, setOpenModal] = useState(true);
 	const [logIn, setLogIn] = useState(false);
+	const [addNew, setAddNew] = useState(false);
 
 	const transferMesageSignUp = () => {
 		setOpenModal(true);
@@ -17,14 +18,19 @@ export default function Navbar(props) {
 	const LogOut = () => {
 		signOut(auth).then(() => {
 			console.log("signed out");
-		  }).catch((error) => {
+		}).catch((error) => {
 			// An error happened.
-		  });
+		});
 	}
 
 	const transferMessageLogIn = () => {
 		setLogIn(true);
 		props.takeMessLogIn(logIn);
+	}
+
+	const transferMessageAddNewPost = () => {
+		setAddNew(true);
+		props.takeMessAddNewPost(addNew);
 	}
 
 	return (
@@ -44,37 +50,43 @@ export default function Navbar(props) {
 				</div>
 				<div className="header__login">
 					{
-					props.user ? (
-						<>
-						{ 
-						props.user.displayName
-						 }
-						<button
-						onClick={LogOut}
-						className="btn btn-login"
-						>
-							Log out
-						</button>
-						
-						</>
-					) : (
-						<div>
-							<button
-							onClick={transferMessageLogIn}
-							variant="contained"
-							size="small"
-							className="btn btn-login"
-							>
-								Log in
-							</button>
-							<button
-							onClick={transferMesageSignUp}
-							className="btn btn-sign-up"
-							>
-								Sign up
-							</button>
-						</div>
-					)}
+						props.user ? (
+							<div className="user-container">
+								<i class='bx bx-home-circle'></i>
+								<i class='bx bx-chat'></i>
+								<i class='bx bx-compass'></i>
+								<button className="btn btn-upload" onClick={transferMessageAddNewPost}>
+									<i className="far fa-plus-square"></i>
+								</button>
+								{
+									props.user.displayName
+								} &ensp;
+								<button
+									onClick={LogOut}
+									className="btn btn-login"
+								>
+									Log out
+								</button>
+
+							</div>
+						) : (
+							<div>
+								<button
+									onClick={transferMessageLogIn}
+									variant="contained"
+									size="small"
+									className="btn btn-login"
+								>
+									Log in
+								</button>
+								<button
+									onClick={transferMesageSignUp}
+									className="btn btn-sign-up"
+								>
+									Sign up
+								</button>
+							</div>
+						)}
 				</div>
 			</div>
 		</div>

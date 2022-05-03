@@ -53,3 +53,23 @@
     z-index: 15;
     padding-left: 10px;
 }
+
+.user-container {
+    display: flex;
+    align-items: center;
+}
+
+.btn-upload {
+    background-color: #fff !important;
+}
+
+.user-container i{
+    font-size: 1.6rem;
+    cursor: pointer;
+    margin: 0.3rem;
+}
+
+progress{
+    width: 90%;
+    height: 1rem;
+}

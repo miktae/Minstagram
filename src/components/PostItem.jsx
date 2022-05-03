@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import "./PostItem.css";
+import "./Calendar.css";
+import { momentfromNow } from "../moment";
 
 export default function PostItem(props) {
+  const [imageLoad, setImageLoad] = useState(false);
+  let date = new Date( props.timestamp.seconds * 1000 );
+
   return (
     <div className="post__container">
       {/* Header -> Username + Avatar + Local */}
@@ -14,7 +19,7 @@ export default function PostItem(props) {
         </div>
         <div className="post__header--block-right">
           <div className="post__header--username">
-            <a href="/#">{ props.username }</a>
+            <a href="/#">{props.username}</a>
           </div>
           <div className="post__header--more-option">
             <span>
@@ -26,9 +31,31 @@ export default function PostItem(props) {
       {/* image */}
       <div className="post__image">
         {
-          props.imageSrc.includes(".mp4") ? <video controls>
-            <source src={props.imageSrc} type="video/mp4" />
-          </video> : <img src={props.imageSrc} alt="post" />
+          <>
+            {
+              imageLoad ? (
+                <img src={props.imageSrc} alt="post" />
+              ) : (
+                <video controls>
+                  <source src={props.imageSrc} type="video/mp4" />
+                </video>
+              )
+            }
+            <img style={{ display: 'none' }} src={props.imageSrc}
+              onLoad=
+              {
+                () => {
+                  setImageLoad(true);
+                }
+              }
+              onError=
+              {
+                () => {
+                  setImageLoad(false);
+                }
+              }
+            />
+          </>
         }
       </div>
       <div className="post__group-bottom">
@@ -62,25 +89,27 @@ export default function PostItem(props) {
         <div className="post__caption">
           <div className="post__caption--user">
             <span className="user-name">
-              <a href="/#">{ props.username }</a>
+              <a href="/#">{props.username}</a>
             </span>
             &nbsp;
             <span className="caption">
-             { props.caption }
+              {props.caption}
             </span>
           </div>
           {/* Time */}
-          <p className="post__caption--time"><span>1</span> Ngày trước</p>
+          <p className="post__caption--time">
+             { momentfromNow(date) } 
+          </p>
         </div>
         {/* input field for comment */}
         <div className="post__comment">
-            <form>
-                <span>
-                    <i className='bx bx-smile'></i>
-                </span>
-                <input type="text" placeholder="Thêm bình luận..." />
-                <button className="btn btn-post-comment">Đăng</button>
-            </form>
+          <form>
+            <span>
+              <i className='bx bx-smile'></i>
+            </span>
+            <input type="text" placeholder="Add a comment..." />
+            <button className="btn btn-post-comment">Post</button>
+          </form>
         </div>
       </div>
     </div>
