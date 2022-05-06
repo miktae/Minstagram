@@ -41,7 +41,7 @@ export default function PostItem(props) {
                 </video>
               )
             }
-            <img style={{ display: 'none' }} src={props.imageSrc}
+            <img className="hidden" src={props.imageSrc}
               onLoad=
               {
                 () => {
