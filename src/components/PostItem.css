@@ -147,6 +147,42 @@
     font-weight: 600;
 }
 
+.btn-edits {
+    background-color: #fff !important;
+}
+
+.form_edit_post{
+    display: flex;
+    border: 1px solid transparent;
+    flex-direction: column;
+}
+
+.btn-post-edit{
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    cursor: pointer;
+   border: 1px solid transparent;
+   background-color: #fff;
+   padding: 1rem;
+   border-bottom: 1px solid rgb(212, 211, 211); 
+   font-size: 0.8rem;
+}
+
+.btn-delete{
+color: rgb(255, 0, 0);
+font-weight: 700;
+}
+
+.text-red{
+    color: rgb(255, 0, 0)!important;
+    transition: all .0001s ease-in-out;
+}
+.text-red:hover {
+    transform: scale(1.2);
+}
+.red{
+    background: #ff0000;
+}
+
 .hidden{
     display: none;
 }

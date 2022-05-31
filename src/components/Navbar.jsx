@@ -3,9 +3,9 @@ import {
 	Outlet,
 	NavLink,
 	useResolvedPath,
-	useMatch
+	useMatch,
 } from "react-router-dom";
-import { auth, storage } from "../firebase";
+import { auth, storage, db } from "../firebase";
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
@@ -16,6 +16,7 @@ import {
 import {
 	addDoc,
 	serverTimestamp,
+	collection
 } from "firebase/firestore";
 import {
 	ref,
@@ -60,8 +61,8 @@ const CustomLink = (props) => {
 	let match = useMatch({ path: resolved.pathname, end: true })
 	return (
 		<NavLink to={props.to}>
-			<i className={match ? 'bx bxs-' +  props.iconName 
-			: 'bx bx-' + props.iconName }>
+			<i className={match ? 'bx bxs-' + props.iconName
+				: 'bx bx-' + props.iconName}>
 				{props.children}
 			</i>
 		</NavLink>
@@ -84,6 +85,7 @@ export default function Navbar() {
 	const [caption, setCaption] = useState("");
 	const [imgDownloadUrl, setImgDownloadUrl] = useState("");
 	const [value, onChange] = useState(new Date());
+	const postsCollectionRef = collection(db, "posts");
 
 	useEffect(() => {
 		onAuthStateChanged(auth, (user) => {
@@ -172,7 +174,7 @@ export default function Navbar() {
 						caption,
 						imageSrc: downloadURL,
 						username: user.displayName,
-					})
+					}).then(() => location.reload())
 				});
 				setOpenModalUpload(false);
 			}
@@ -222,12 +224,12 @@ export default function Navbar() {
 									<CustomLink to="/Minstagram/inbox"
 										iconName="chat">
 									</CustomLink>
-									<CustomLink to="/Minstagram/explore"
-										iconName="compass">
-									</CustomLink>
 									<button className="btn btn-upload" onClick={() => setOpenModalUpload(true)}>
 										<i className="far fa-plus-square"></i>
 									</button>
+									<CustomLink to="/Minstagram/explore"
+										iconName="compass">
+									</CustomLink>
 									{
 										user.displayName
 									} &ensp;
