@@ -93,3 +93,16 @@
     align-items: center;
     margin-left: 12%;
 }
+
+i.fa-solid.fa-face-smile {
+    cursor: pointer;
+    font-size: 1.5rem;
+    position: relative;
+    color: #00bcd4;
+    top: 0.2rem;
+    left: 0rem
+}
+
+.emoji-picker-react{
+   height: 100%!important;
+}

@@ -1,12 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from "react-router-dom";
 import Avatar from "@material-ui/core/Avatar";
 import 'emoji-picker-element';
 import styles from "./Messages.module.css";
 
+const EmojiPicker = () => {
+    const ref = useRef(null)
+
+    useEffect(() => {
+        ref.current.addEventListener('emoji-click', event => {
+            document.getElementById("message").value += event.detail.unicode
+        })
+        ref.current.skinToneEmoji = '👍'
+    }, [])
+
+    return React.createElement('emoji-picker', { ref })
+}
+
 export default function Messages(props) {
     const [iconOpen, setIconOpen] = useState(false);
+    const [message, setMessage] = useState("");
+
     let { user } = useParams();
+
     return (
         <div className={styles.messageContainer}>
             <div className={styles.messageHeader}>
@@ -32,19 +48,23 @@ export default function Messages(props) {
                 </div>
                 <div className={styles.messageTyping}>
                     <i className="fa-solid fa-face-smile"
-                        style={{
-                            cursor: 'pointer',
-                            fontSize: '1.5rem',
-                            position: 'relative',
-                            color: '#00bcd4',
-                           top: '0.7rem',
-                           left: '2.5rem'
-                        }}
                         onClick={() => setIconOpen(!iconOpen)}></i>
-                    {iconOpen && <emoji-picker></emoji-picker>}
-                    <input type="text" className={styles.messageInput}
-                        placeholder="            Message..." />
+                    <input type="text" id="message" className={styles.messageInput}
+                        placeholder="Message..."
+                        defaultValue={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                    />
+                    <div className={styles.messageIcon}>
+                        <i className="fa-solid fa-microphone"
+                         tooltip="Send a voice message"></i>
+                        <i className="fa-solid fa-photo-film" 
+                         tooltip="Attach a file"></i>
+                        <i className="fa-solid fa-user-clock"
+                         tooltip="Reminder"></i>
+                    </div>
+                    {message && <p className={styles.messageSend}>Send</p>}
                 </div>
+                {iconOpen && <EmojiPicker />}
             </div>
         </div>
     )
