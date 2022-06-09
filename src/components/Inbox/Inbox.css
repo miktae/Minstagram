@@ -46,8 +46,8 @@
 
 .Chat-username>.Chat-edit {
     cursor: pointer;
-  margin-left: 30%;
-  margin-right: 0;
+    margin-left: 30%;
+    margin-right: 0;
 }
 
 .Chat-username .Chat-edit i {
@@ -62,7 +62,8 @@
     padding: 4% 8%;
 }
 
-.user-item:hover, .user-item.active {
+.user-item:hover,
+.user-item.active {
     cursor: pointer;
     background-color: #f5f1f1;
 }
@@ -101,8 +102,4 @@ i.fa-solid.fa-face-smile {
     color: #00bcd4;
     top: 0.2rem;
     left: 0rem
-}
-
-.emoji-picker-react{
-   height: 100%!important;
 }

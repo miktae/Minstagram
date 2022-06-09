@@ -31,4 +31,11 @@ const UserItem = (props) => {
     );
 }
 
+UserItem.defaultProps = {
+    name: 'Min',
+    lastestContent: 'Lorem',
+    lastestSince: '2w',
+    to: "/Minstagram/inbox/min",
+}
+
 export default UserItem

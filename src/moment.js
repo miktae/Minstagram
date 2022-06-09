@@ -32,4 +32,15 @@ function momentfromNow(date) {
     return Math.floor(seconds) + " seconds ago";
   }
 
-  export { momentfromNow }
+function converttoDateandTime(t) {
+    var d = new Date(t * 1000);
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    var year = d.getFullYear();
+    var hour = d.getHours();
+    var min = d.getMinutes();
+    var sec = d.getSeconds();
+    var time =  d.toLocaleString();
+    return time;
+}
+  export { momentfromNow, converttoDateandTime }

@@ -1,9 +1,13 @@
 .messageContainer {
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .messageHeader {
     display: flex;
+    height: 10%;
     justify-content: space-between;
     align-items: center;
     padding: 1.8% 4%;
@@ -30,45 +34,50 @@
 
 .messageBody {
     display: flex;
+    height: 82%;
     flex-direction: column;
-    height: 100%;
-    padding: 2%;
+    padding: 0 0 2% 2%;
 }
 
-.messageBodyMainDate {
-    text-align: center;
+.messageBodyMain {
+    height: 90%;
+    overflow-y: scroll;
+}
+
+.messageTypingContainer {
+    height: 10%;
 }
 
 .messageTyping {
     width: 95%;
-    margin-top: 40%;
     height: 30px;
-    padding: 8px;
+    z-index: 1;
+    padding: 1.25%;
     display: flex;
     border: 1px solid rgba(var(--b6a, 219, 219, 219), 1);
     border-radius: 21px;
-    margin-top: 40%;
 }
 
-input.messageInput {
+emoji-picker {
+    position: relative;
+}
+
+textarea.messageInput {
     outline: none;
     border: none;
     width: 100%;
     height: 100%;
+    padding-top: 4px;
     margin-left: 2%;
     font-size: 1.1rem;
-}
-
-.messageInput input:focus {
-    outline: none !important;
-    border: 1px solid rgba(var(--b6a, 219, 219, 219), 1);
+    overflow: hidden;
 }
 
 .messageIcon {
     display: flex;
 }
 
-.messageIcon>i {
+.messageIcon i {
     cursor: pointer;
     margin-right: 1rem;
     font-size: 1.5rem;
@@ -80,6 +89,7 @@ input.messageInput {
     align-items: center;
     color: #00bcd4;
     margin-right: 1%;
+    margin-top: 2%;
 }
 
 .messageSend:hover {

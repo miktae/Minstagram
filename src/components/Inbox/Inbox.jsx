@@ -3,7 +3,8 @@ import {
   Outlet,
   useParams,
 } from "react-router-dom";
-import "./Inbox.css"
+import { auth } from "../../firebase";
+import "./Inbox.css";
 import UserItem from './UserItem';
 
 function Inbox() {
@@ -29,12 +30,7 @@ function Inbox() {
             </div>
           </div>
           <div className="Chat-user-list">
-            <UserItem to="/Minstagram/inbox/min" name="Min"
-              lastestContent="Lorem Ipsum" lastestSince="2w" />
-            <UserItem to="/Minstagram/inbox/min1" name="Min1"
-              lastestContent="Lorem Ipsum" lastestSince="2w" />
-            <UserItem to="/Minstagram/inbox/min2" name="Min2"
-              lastestContent="Lorem Ipsum" lastestSince="2w" />
+            <UserItem />
           </div>
         </div>
           {

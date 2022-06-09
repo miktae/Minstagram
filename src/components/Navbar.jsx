@@ -28,6 +28,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import { Input } from '@material-ui/core';
 import DatePicker from 'react-date-picker/dist/entry.nostyle';
+import ModalReminder from './ModalReminder';
 import "./Navbar.css";
 
 const getModalStyle = () => {
@@ -376,7 +377,7 @@ export default function Navbar() {
 					</div>
 				</Modal>
 			</div>
-			<Outlet />
+			{ user ? <Outlet /> : <ModalReminder /> }
 		</>
 	);
 }
