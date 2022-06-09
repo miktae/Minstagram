@@ -104,7 +104,8 @@ export default function Message(props) {
                                         || props.fileType == "video/x-msvideo"
                                         || props.fileType == "video/x-ms-wmv"
                                         ? <video width="40%" height="40%"
-                                            src={props.fileUrl} controls />
+                                            src={props.fileUrl} controls style={ 
+                                                props.user != auth.currentUser.uid && { marginLeft: "2%" }}/>
                                         : <div className={styles.fileEm}>
                                             <div className={styles.fileName}>
                                                   {props.fileName} 
