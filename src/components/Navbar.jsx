@@ -4,6 +4,7 @@ import {
 	NavLink,
 	useResolvedPath,
 	useMatch,
+	Link,
 } from "react-router-dom";
 import { auth, storage, db } from "../firebase";
 import {
@@ -11,12 +12,17 @@ import {
 	signInWithEmailAndPassword,
 	onAuthStateChanged,
 	updateProfile,
-	signOut
+	signOut,
+	sendPasswordResetEmail,
 } from "firebase/auth";
 import {
 	addDoc,
 	serverTimestamp,
-	collection
+	collection,
+	where,
+	onSnapshot,
+	query,
+	getDocs,
 } from "firebase/firestore";
 import {
 	ref,
@@ -30,6 +36,8 @@ import { Input } from '@material-ui/core';
 import DatePicker from 'react-date-picker/dist/entry.nostyle';
 import ModalReminder from './ModalReminder';
 import "./Navbar.css";
+import { async } from "@firebase/util";
+import { Avatar } from "@mui/material";
 
 const getModalStyle = () => {
 	const top = 50;
@@ -73,20 +81,27 @@ const CustomLink = (props) => {
 export default function Navbar() {
 	const [openLogInModal, setOpenLogInModal] = useState(false); // Check open modal
 	const [openSignUpModal, setOpenSignUpModal] = useState(false)
+	const [openForgotPasswordModal,
+		setOpenForgotPasswordModal] = useState(false)
 	const [openNextSignUp, setOpenNextSignUp] = useState(false)
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [username, setUsername] = useState('');
 	const [user, setUser] = useState(null);
+	const [search, setSearch] = useState('');
+	const [searchIcon, setSearchIcon] = useState(true);
+	const [searchDatas, setSearchDatas] = useState([])
 	const classes = useStyles();
 	const [modalStyle] = useState(getModalStyle);
 	const [openModalUpload, setOpenModalUpload] = useState(false);
+	const [userSettings, setUserSettings] = useState(false);
 	const [file, setFile] = useState(null);
+	const [avatarfile, setAvatarFile] = useState(null);
 	const [progress, setProgress] = useState(0);
 	const [caption, setCaption] = useState("");
 	const [imgDownloadUrl, setImgDownloadUrl] = useState("");
 	const [value, onChange] = useState(new Date());
-	const postsCollectionRef = collection(db, "posts");
+	// const postsCollectionRef = collection(db, "posts");
 
 	useEffect(() => {
 		onAuthStateChanged(auth, (user) => {
@@ -94,7 +109,8 @@ export default function Navbar() {
 				// user has logged in...
 				setUser(user);
 				// console.log(user);
-			} else {
+			}
+			else {
 				// user has logged out...
 				setUser(null);
 			}
@@ -103,21 +119,58 @@ export default function Navbar() {
 
 	const handleSignUp = (event) => {
 		event.preventDefault();
-		createUserWithEmailAndPassword(auth, email, password)
-			.then((userCredential) => {
-				// Signed up
-				// user = userCredential.user;
-				// update profile
-				updateProfile(auth.currentUser, {
-					displayName: username,
-				})
-			})
-			.catch((error) => {
-				const errorCode = error.code;
-				const errorMessage = error.message;
-				console.log(errorCode, errorMessage);
-				// ..
-			});
+		if (email === "" || password === "" || username === "") {
+			alert("Please fill in all fields");
+		}
+		if (password.length < 8) {
+			alert("Password must be at least 8 characters");
+		}
+		if (avatarfile === null) {
+			alert("Please upload an avatar");
+		}
+		if (new Date().getFullYear() - value.getFullYear() < 16) {
+			alert("You must be 16 years or older to sign up");
+		}
+
+		const storageRef = ref(storage, `files/${avatarfile.name}`);
+		const uploadTask = uploadBytesResumable(storageRef, avatarfile);
+		uploadTask.on(
+			"state_changed",
+			(snapshot) => {
+				const prog = Math.round(
+					(snapshot.bytesTransferred / snapshot.totalBytes) * 100
+				);
+				setProgress(prog);
+			},
+			(error) => console.log(error),
+			() => {
+				getDownloadURL(uploadTask.snapshot.ref).then((avatarURL) => {
+					createUserWithEmailAndPassword(auth, email, password)
+						.then((userCredential) => {
+							// Signed up
+							// user = userCredential.user;
+							// update profile
+							updateProfile(auth.currentUser, {
+								displayName: username,
+								photoURL: avatarURL,
+							})
+							// Add user to database
+							addDoc(db, "users", {
+								email: email,
+								username: username,
+								avatarURL: avatarURL,
+								createdAt: serverTimestamp(),
+							})
+						})
+						.catch((error) => {
+							const errorCode = error.code;
+							const errorMessage = error.message;
+							console.log(errorCode, errorMessage);
+							// ..
+						});
+				});
+			}
+		);
 		setOpenSignUpModal(false);
 	}
 
@@ -126,20 +179,38 @@ export default function Navbar() {
 		setOpenNextSignUp(true);
 	}
 
+	const handleAvatarChange = (e) => {
+		setAvatarFile(e.target.files[0]);
+	}
+
 	const handleSignIn = (event) => {
 		event.preventDefault();
 		signInWithEmailAndPassword(auth, email, password)
 			.then((userCredential) => {
-				// Signed in 
+				// Signed in
 				const user = userCredential.user;
 				// ...
 			})
 			.catch((error) => {
 				const errorCode = error.code;
 				const errorMessage = error.message;
-				console.log(errorCode, errorMessage);
+				alert(errorCode, errorMessage);
 			});
 		setOpenLogInModal(false);
+	}
+
+	const handleForgot = (event) => {
+		event.preventDefault();
+		sendPasswordResetEmail(auth, email)
+			.then(() => {
+				alert("Password reset email sent");
+			})
+			.catch((error) => {
+				const errorCode = error.code;
+				const errorMessage = error.message;
+				alert(errorCode, errorMessage);
+			});
+		setOpenForgotPasswordModal(false);
 	}
 
 	const handleFileChange = (event) => {
@@ -156,7 +227,8 @@ export default function Navbar() {
 		if (!file) return null;
 		const storageRef = ref(storage, `files/${file.name}`);
 		const uploadTask = uploadBytesResumable(storageRef, file);
-
+		const postsCollectionRef = collection(db,
+			auth.currentUser.displayName + "'s_posts");
 		uploadTask.on(
 			"state_changed",
 			(snapshot) => {
@@ -175,13 +247,12 @@ export default function Navbar() {
 						caption,
 						imageSrc: downloadURL,
 						username: user.displayName,
-					}).then(() => location.reload())
+					})
 				});
 				setOpenModalUpload(false);
 			}
 		);
 	};
-
 
 	const LogOut = () => {
 		signOut(auth).then(() => {
@@ -199,6 +270,23 @@ export default function Navbar() {
 		setOpenSignUpModal(true);
 	}
 
+	const Search = (e) => {
+		e.preventDefault();
+		const usersCollectionRef = collection(db, "users");
+		// console.log(q);
+		const q = query(usersCollectionRef, where("userName", "==", search));
+		onSnapshot(q, (snapshot) => {
+			console.log(search);
+			// console.log(snapshot.docs.map(doc => ({
+			// 	...doc.data() 
+			// })));
+			setSearchDatas(snapshot.docs.map(doc => ({
+				...doc.data(),
+			})))
+		})
+		console.log(searchDatas);
+	}
+
 	return (
 		<>
 			<div className="container">
@@ -212,8 +300,47 @@ export default function Navbar() {
 						</a>
 					</div>
 					<div className="header__search">
-						<input type="text" placeholder="Search" />
-						<i className="bx bx-search-alt-2"></i>
+						<div className="header__search-input">
+							{
+								searchIcon &&
+								<i className="bx bx-search-alt-2"></i>
+							}
+							<input type="text" placeholder="Search"
+								onChange={(e) => {
+									setSearch(e.target.value)
+								}}
+								onKeyUp={Search}
+								onFocus={() => {
+									setSearchIcon(false)
+								}}
+								onBlur={() => {
+									setSearchIcon(true)
+								}}
+							/>
+						</div>
+						<div className="header__search-list"
+							style={searchDatas.length ? { display: "block" }
+								: { display: "none" }}>
+							<ul className="header__search-ul">
+								{
+									searchDatas.map((data, index) => {
+										return (
+											<li key={index}>
+												<a href={`/profile/${data.userName}`}>
+													<Avatar src={data.avatarSrc}
+														alt="avatar" />
+													&nbsp;&nbsp;
+													<span>
+														{data.userName}
+													</span>
+												</a>
+											</li>											
+										)
+									}
+									)
+								}
+							</ul>
+						</div>
 					</div>
 					<div className="header__login">
 						{
@@ -231,9 +358,24 @@ export default function Navbar() {
 									<CustomLink to="/Minstagram/explore"
 										iconName="compass">
 									</CustomLink>
+									<div onClick={() => setUserSettings(!userSettings)}>
+										{
+
+											user.photoURL ?
+												<img className="user-avatar"
+													src={user.photoURL} alt="avatar" /> :
+												user.displayName
+
+										}</div> &ensp;
 									{
-										user.displayName
-									} &ensp;
+										userSettings &&
+										<div className="user-settings">
+											<div>Profile</div>
+											<div>Saved</div>
+											<div>Settings</div>
+											<div>Switch Account</div>
+										</div>
+									}
 									<button
 										onClick={LogOut}
 										className="btn btn-login"
@@ -279,15 +421,20 @@ export default function Navbar() {
 										<input
 											className="form__field"
 											type="file"
-											onChange={handleFileChange}
+											onChange={handleAvatarChange}
 										/>
 									</div>
 									<div className="form__group">
 										<label htmlFor="birthday">Birthday:</label>
 										<DatePicker onChange={onChange} value={value} />
 									</div>
+									<button className="btn btn-back" style={{
+										marginTop: "0.6rem"
+									}}
+										onClick={() => setOpenNextSignUp(false)}>Back</button>
+									&nbsp;&nbsp;
 									<button className="btn btn-login" style={{
-										"margin-top": "0.6rem"
+										marginTop: "0.6rem"
 									}}
 										onClick={handleSignUp}>Sign Up</button>
 								</> :
@@ -300,18 +447,20 @@ export default function Navbar() {
 										</div>
 										<div className="form__group">
 											<Input className="form__field" placeholder="Email"
-												type="text" value={email} onChange={
+												type="email" value={email} onChange={
 													(e) => setEmail(e.target.value)
 												} />
 										</div>
 										<div className="form__group">
 											<Input className="form__field" placeholder="Password"
-												type="password" value={password} onChange={
+												type="password"
+												autoComplete=""
+												value={password} onChange={
 													(e) => setPassword(e.target.value)}
 											/>
 										</div>
 										<button className="btn btn-login" style={{
-											"margin-top": "0.6rem"
+											marginTop: "0.6rem"
 										}}
 											onClick={handleNextSignup}>Next</button>
 									</>
@@ -337,8 +486,37 @@ export default function Navbar() {
 									placeholder="Password" type="password"
 									value={password} onChange={(e) => setPassword(e.target.value)} />
 							</div>
-							<button className="btn btn-login"
+							<div className="form__forgot">
+								<Link to="/Minstagram/"
+									onClick={() => {
+										setOpenForgotPasswordModal(true)
+										setOpenLogInModal(false)
+									}}
+								>
+									Forgot Password
+								</Link>
+							</div><button className="btn btn-login"
 								onClick={handleSignIn}>Log In</button>
+						</form>
+					</div>
+				</Modal>
+				{/* Modal forgot password */}
+				<Modal open={openForgotPasswordModal}
+					onClose={() => setOpenForgotPasswordModal(false)}>
+					<div style={modalStyle} className={classes.paper}>
+						<form className="form__login">
+							<img className="form__logo"
+								src="https://www.instagram.com/static/images/web/mobile_nav_type_logo.png/735145cfe0a4.png"
+								alt="Logo"
+							/>
+							<div className="form__group">
+								<Input className="form__field" placeholder="Email"
+									type="text" value={email}
+									onChange={(e) => setEmail(e.target.value)} />
+							</div>
+							<button className="btn btn-login"
+								onClick={handleForgot}>Send Password Reset Email
+							</button>
 						</form>
 					</div>
 				</Modal>
@@ -377,7 +555,7 @@ export default function Navbar() {
 					</div>
 				</Modal>
 			</div>
-			{ user ? <Outlet /> : <ModalReminder /> }
+			{user ? <Outlet /> : <ModalReminder />}
 		</>
 	);
 }

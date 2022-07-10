@@ -1,0 +1,65 @@
+.postview__container {
+    display: flex;
+    flex-wrap: wrap;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    width: 70%;
+    height: 90%;
+    font-size: 1rem;
+    border-radius: 12px;
+    background-color: #fff;
+    border: 2px solid transparent;
+}
+.postview__image{
+    flex: 1;
+}
+.postview__image > img, video{
+    width: 100%;
+    height: 100%;
+}
+.postview__cont{
+   flex: 1.2;
+}
+.post__header{
+    padding: 16px;
+}
+.postview__header--block-right{
+    display: flex;
+    width: 100%;
+}
+.postview__header--user{
+    flex: 1;
+   display: flex;
+   align-items: center;
+}
+.post__header--more-option{
+    display: flex;
+    justify-content: flex-end;
+    flex: 3;
+}
+.post__header--more-option button{
+    padding: 0!important;
+}
+.postview__caption{
+    display: flex;
+    align-items: center;
+}
+.post__caption--comments{
+    color: #000;
+}
+.post__caption--comment{
+    display: flex;
+}
+.post__header--follow button{
+    padding: 4px 9px;
+    background-color: #0095f6;
+    border: 1px solid transparent;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.post__header--follow button:active{
+    background-color: #0384d9;
+}

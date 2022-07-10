@@ -1,10 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { auth, db } from "../../firebase";
+import {
+  collection,
+  orderBy,
+  query,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import Avatar from "@material-ui/core/Avatar";
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import "./PostItem.css";
 import "./Calendar.css";
-import { momentfromNow } from "../moment";
+import { momentfromNow } from "../../moment";
+import { Link } from "react-router-dom";
+import useStore from "../Inbox/store";
 
 const getModalStyle = () => {
   const top = 50;
@@ -33,21 +43,75 @@ const useStyles = makeStyles((theme) => ({
 export default function PostItem(props) {
   const [imageLoad, setImageLoad] = useState(false);
   const [openEditPost, setOpenEditPost] = useState(false);
+  const [openShareModal, setOpenShareModal] = useState(false);
   const [likePost, setLikePost] = useState(false);
+  const [iconOpen, setIconOpen] = useState(false);
+  const [id, setId] = useState(null);
   const classes = useStyles();
   const [modalStyle] = useState(getModalStyle);
+  const postsCollectionRef = collection(db, auth.currentUser.displayName + "'s_posts");
+  const q = query(postsCollectionRef, orderBy('timestamp', 'asc'));
+  const [comments, setComments] = useState([]);
   const postEditMySelf = ["Delete", "Edit", "Unhide like count",
     "Turn off commenting", "Go to post", "Cancel"]
   let date = new Date(props.timestamp.seconds * 1000);
+  const setOpenPostView = useStore((state) => state.setOpenPostView)
 
   const handleEditPost = (e) => {
     e.preventDefault();
-    e.stopPropagation();  
+    e.stopPropagation();
   }
 
   const handleLikePost = (id) => {
     console.log("like post ", id);
     setLikePost(!likePost);
+  }
+
+  const PostComment = async (id) => {
+    let comment = document.getElementById(`comment_${id}`).value;
+    console.log("comment ", comment);
+    if (comment.length > 0) {
+      setComments([...comments,
+      {
+        content: comment,
+        id: id,
+        at: new Date(),
+        by: auth.currentUser.displayName,
+      }
+      ]
+      )
+      console.log(comments)
+      console.log("comment ", comment);
+      try {
+        await updateDoc(doc(db, auth.currentUser.displayName
+          + "'s_posts", id), {
+          comments: [...comments, {
+            content: comment,
+            id: id,
+            at: new Date(),
+            by: auth.currentUser.displayName,
+          }]
+        }).then(() => {
+          document.getElementById(`comment_${id}`).value = ""
+        })
+      } catch (err) {
+        alert(err)
+      }
+    }
+  }
+
+  const EmojiPicker = () => {
+    const ref = useRef(null)
+
+    useEffect(() => {
+      ref.current.addEventListener('emoji-click', event => {
+        document.getElementById('comment_' + id).value
+          += event.detail.unicode
+      })
+      ref.current.skinToneEmoji = '👍'
+    }, [])
+
+    return React.createElement('emoji-picker', { ref })
   }
 
   return (
@@ -106,17 +170,19 @@ export default function PostItem(props) {
         <div className="post__group-bottom">
           <div className="icons">
             <div className="icons-left">
-              <span onClick={ ()=>{
+              <span onClick={() => {
                 handleLikePost(props.id)
               }}>
-                <i className={`bx bx-heart ${ likePost ? "hidden" : ""}`}></i>
-                <i className={`bx bxs-heart ${ likePost ? "text-red" : "hidden"}`}></i>
+                <i className={`bx bx-heart ${likePost ? "hidden" : ""}`}></i>
+                <i className={`bx bxs-heart ${likePost ? "text-red" : "hidden"}`}></i>
               </span>
               <span>
                 <i className="bx bx-message-rounded"></i>
               </span>
               <span>
-                <i className="bx bx-paper-plane"></i>
+                <i className="bx bx-paper-plane"
+                  onClick={() => setOpenShareModal(true)}
+                ></i>
               </span>
             </div>
             <div className="icons-right">
@@ -142,6 +208,23 @@ export default function PostItem(props) {
               {props.caption}
             </span>
           </div>
+          {/* Comments */}
+          <p className="post__caption--comments">
+            <Link className="post__caption--comments--link"
+              onClick={() => {
+                setOpenPostView(true)
+              }
+              }
+              to={`/Minstagram/post/${props.id}`}>{
+                props.comments &&
+                  props.comments.length > 0 ?
+                  props.comments.length === 1 ?
+                    "View " + 1 + " comment"
+                    :
+                    "View all " + props.comments.length + " comments"
+                  : ""
+              }</Link>
+          </p>
           {/* Time */}
           <p className="post__caption--time">
             {momentfromNow(date)}
@@ -149,12 +232,25 @@ export default function PostItem(props) {
         </div>
         {/* input field for comment */}
         <div className="post__comment">
-          <form>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            PostComment(props.id)
+          }}>
             <span>
-              <i className='bx bx-smile'></i>
+              <i className='bx bx-smile'
+                onClick={() => {
+                  setId(props.id)
+                  setIconOpen(!iconOpen)
+                }}>
+                {
+                  iconOpen && <EmojiPicker />
+                }
+              </i>
             </span>
-            <input type="text" placeholder="Add a comment..." />
-            <button className="btn btn-post-comment">Post</button>
+            <input type="text" placeholder="Add a comment..."
+              id={"comment_" + props.id} />
+            <button className="btn btn-post-comment"
+              type="submit">Post</button>
           </form>
         </div>
       </div>
@@ -168,13 +264,27 @@ export default function PostItem(props) {
                   <button key={index}
                     className={"btn-post-edit btn-" +
                       item.toString().replaceAll(" ", "-").toLowerCase()}
-                      onClick={() => handleEditPost()}
-                      >
+                    onClick={() => handleEditPost()}
+                  >
                     {item}
                   </button>
                 )
               }
               )}
+          </form>
+        </div>
+      </Modal>
+      {/* Modal share */}
+      <Modal open={openShareModal} onClose={() => setOpenShareModal(false)}>
+        <div style={modalStyle} className={classes.paper}>
+          <form className="form__signup">
+            Share
+            <div className="form__group">
+              All
+            </div>
+            <button type="submit" className="btn btn-login" >
+              Send
+            </button>
           </form>
         </div>
       </Modal>

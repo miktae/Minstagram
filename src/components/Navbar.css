@@ -28,6 +28,7 @@
 
 .header__search {
     display: flex;
+    flex-direction: column;
     align-items: center;
     height: 28px;
     flex: 0 1 auto;
@@ -35,6 +36,11 @@
     width: 215px;
     -webkit-box-flex: 0;
     position: relative;
+}
+
+.header__search-input{
+    display: flex;
+    align-items: center;
 }
 
 .header__search input {
@@ -48,10 +54,48 @@
     border-radius: 4px;
 }
 
+.header__search input:focus {
+    width: 215px!important;
+}
+
 .header__search i.bx-search-alt-2 {
-    position: absolute;
     z-index: 15;
-    padding-left: 10px;
+    margin-right: -1.5rem;
+}
+
+.header__search-list{
+    margin-top: 6%;
+    background-color: rgb(255, 255, 255);
+    width: 100%;
+}
+
+.header__search-ul{
+    height: 100%;
+}
+
+.header__search-ul{
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding-inline-start: 0!important;
+}
+
+.header__search-ul> li> a{
+   display: flex;
+   align-items: center;
+}
+
+.header__search-ul> li{
+    padding: 8px;
+ }
+
+.header__search-ul> li:hover{
+    background-color: #fafafa;
+ }
+
+.header__search-ul a{
+    color: #000;
+    font-weight: 600;
 }
 
 .user-container {
@@ -63,13 +107,43 @@
     background-color: #fff !important;
 }
 
-.user-container i{
+.user-container i {
     font-size: 1.6rem;
     cursor: pointer;
     margin: 0.3rem;
 }
 
-progress{
+progress {
     width: 90%;
     height: 1rem;
+}
+
+.form__forgot {
+    margin-top: -6%;
+    margin-bottom: 3%;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.user-settings {
+    background-color: #fff;
+    position: absolute;
+    top: 57px;
+    right: 16%;
+    box-shadow: 0 0 5px 1px rgba(0,0,0, .0975);
+    border-radius: 0.3rem;
+}
+
+.user-settings div {
+    padding: 0.6rem;
+}
+
+.user-settings div:hover {
+    cursor: pointer;
+    background-color: #fafafacd;
 }

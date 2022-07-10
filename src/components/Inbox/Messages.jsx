@@ -14,13 +14,13 @@ import {
     serverTimestamp,
     addDoc,
     updateDoc,
-    doc
+    doc,
+    where
 } from "firebase/firestore";
 import {
     ref,
     getDownloadURL,
     uploadBytes,
-    uploadBytesResumable
 } from "firebase/storage";
 import VoiceClip from './Tools/VoiceClip';
 import useStore from "./store";
@@ -39,14 +39,15 @@ const EmojiPicker = () => {
     return React.createElement('emoji-picker', { ref })
 }
 
-export default function Messages() {
+export default function Messages(props) {
     let { user } = useParams();
     const [iconOpen, setIconOpen] = useState(false);
+    const [detailView, setDetailView] = useState(false);
     const [messages, setMessages] = useState([]);
     const [typingMessages, setTypingMessages] = useState('');
     const [audioDownloadUrl, setAudioDownloadUrl] = useState('');
-    const messagesCollectionRef = collection(db, "chats");
-    const q = query(messagesCollectionRef, orderBy('timestamp', 'asc'));
+    const messagesCollectionRef = collection(db, auth.currentUser.displayName + "'s_chats");
+    const q = query(messagesCollectionRef, orderBy('timestamp', 'asc'), where('to', '==', user));
     const audioSrc = useStore((state) => state.audioSrc);
     const setAudioSrc = useStore((state) => state.setAudioSrc);
     const setAudioView = useStore((state) => state.setAudioView);
@@ -57,12 +58,14 @@ export default function Messages() {
     }, [typingMessages])
 
     useEffect(() => onSnapshot(q, (snapshot) => {
+        // console.log(user)
+        // console.log(snapshot.docs.map(doc => doc.data()));
         setMessages(snapshot.docs.map(doc => ({
             ...doc.data(),
             id: doc.id
         })))
         // console.clear()
-    }), []);
+    }), [user]);
 
     const SendMessages = async (e) => {
         let message = document.getElementById('message').value;
@@ -72,6 +75,7 @@ export default function Messages() {
                 document.getElementById('message').value = "";
                 await addDoc(messagesCollectionRef, {
                     user: auth.currentUser.uid,
+                    to: user,
                     message: message,
                     timestamp: timestamp
                 })
@@ -98,7 +102,7 @@ export default function Messages() {
                     xhr.send(null);
                 });
 
-                const docRef = await addDoc(collection(db, "chats"), {
+                const docRef = await addDoc(collection(db, auth.currentUser.displayName + "'s_chats"), {
                     user: auth.currentUser.uid,
                     timestamp: serverTimestamp(),
                 });
@@ -111,7 +115,7 @@ export default function Messages() {
                 await uploadBytes(voiceRef, blob, metadata)
                     .then(async (snapshot) => {
                         const downloadURL = await getDownloadURL(voiceRef);
-                        await updateDoc(doc(db, "chats", docRef.id), {
+                        await updateDoc(doc(db, auth.currentUser.displayName + "'s_chats", docRef.id), {
                             voiceUrl: downloadURL
                         });
                         // console.log(downloadURL)
@@ -133,7 +137,7 @@ export default function Messages() {
             contentType: file.type
         };
 
-        const docRef = await addDoc(collection(db, "chats"), {
+        const docRef = await addDoc(collection(db, auth.currentUser.displayName + "'s_chats"), {
             user: auth.currentUser.uid,
             timestamp: serverTimestamp(),
         });
@@ -142,7 +146,7 @@ export default function Messages() {
         await uploadBytes(fileRef, file)
             .then(async (snapshot) => {
                 const downloadURL = await getDownloadURL(fileRef);
-                await updateDoc(doc(db, "chats", docRef.id), {
+                await updateDoc(doc(db, auth.currentUser.displayName + "'s_chats", docRef.id), {
                     fileName: file.name,
                     fileUrl: downloadURL,
                     fileType: file.type
@@ -156,67 +160,113 @@ export default function Messages() {
 
     return (
         <div className={styles.messageContainer}>
-            <div className={styles.messageHeader}>
-                <div className={styles.messageHeaderLeft}>
-                    <div className={styles.headerAvatar}>
-                        <Avatar sx={{ width: 18, height: 18 }} />
-                    </div>
-                    <div className={styles.headerUser}>
-                        {user}
-                    </div>
-                </div>
-                <div className={styles.messageHeaderRight}>
-                    <i className="fa-solid fa-circle-info"></i>
-                </div>
-            </div>
-            <div className={styles.messageBody}>
-                <div className={styles.messageBodyMain} >
-                    {/* Messages */}
-                    <div className="Message__list">
-                        {
-                            messages.map(message => (
-                                <Message key={message.id} {...message}></Message>
-                            ))
-                        }
-                    </div>
-                </div>
-                <div className={styles.messageTypingContainer}>
-                    <div className={styles.messageTyping}>
-                        <i className="fa-solid fa-face-smile"
-                            onClick={() => setIconOpen(!iconOpen)}></i>
-                        <textarea id="message" className={styles.messageInput}
-                            placeholder="Message..."
-                        ></textarea>
-                        <div className={styles.messageIcon}>
-                            <Tooltip title="Send a voice clip" placement="top">
-                                <>
-                                    <VoiceClip>
-                                    </VoiceClip>
-                                </>
-                            </Tooltip>
-                            <Tooltip title="Attach a file" placement="top">
-                                <label htmlFor="file">
-                                    <i className="fa-solid fa-photo-film"></i>
-                                    <input id="file" type="file"
-                                        onChange={uploadFile}
-                                        name="file" style={{ display: "none" }} />
-                                </label>
-                            </Tooltip>
-                            <Tooltip title="Create reminder" placement="top">
-                                <>
-                                    <Reminder />
-                                </>
-                            </Tooltip>
-
+            {
+                !detailView ?
+                    <>
+                        <div className={styles.messageHeader}>
+                            <div className={styles.messageHeaderLeft}>
+                                <div className={styles.headerAvatar}>
+                                    <Avatar sx={{ width: 18, height: 18 }} />
+                                </div>
+                                <div className={styles.headerUser}>
+                                    {user}
+                                </div>
+                            </div>
+                            <div className={styles.messageHeaderRight}>
+                                <i className="fa-solid fa-circle-info"
+                                    onClick={() => setDetailView(true)}></i>
+                            </div>
                         </div>
-                        <p className={styles.messageSend}
-                            onClick={SendMessages}>
-                            Send
-                        </p>
-                    </div>
-                    {iconOpen && <EmojiPicker />}
-                </div>
-            </div>
+                        <div className={styles.messageBody}>
+                            <div className={styles.messageBodyMain} >
+                                {/* Messages */}
+                                <div className="Message__list">
+                                    {
+                                        messages.map(message => (
+                                            <Message key={message.id} {...message}></Message>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                            <div className={styles.messageTypingContainer}>
+                                <div className={styles.messageTyping}>
+                                    <i className="fa-solid fa-face-smile"
+                                        onClick={() => setIconOpen(!iconOpen)}></i>
+                                    <textarea id="message" className={styles.messageInput}
+                                        placeholder="Message..."
+                                    ></textarea>
+                                    <div className={styles.messageIcon}>
+                                        <Tooltip title="Send a voice clip" placement="top">
+                                            <>
+                                                <VoiceClip>
+                                                </VoiceClip>
+                                            </>
+                                        </Tooltip>
+                                        <Tooltip title="Attach a file" placement="top">
+                                            <label htmlFor="file">
+                                                <i className="fa-solid fa-photo-film"></i>
+                                                <input id="file" type="file"
+                                                    onChange={uploadFile}
+                                                    name="file" style={{ display: "none" }} />
+                                            </label>
+                                        </Tooltip>
+                                        <Tooltip title="Create reminder" placement="top">
+                                            <>
+                                                <Reminder />
+                                            </>
+                                        </Tooltip>
+
+                                    </div>
+                                    <p className={styles.messageSend}
+                                        onClick={SendMessages}>
+                                        Send
+                                    </p>
+                                </div>
+                                {iconOpen && <EmojiPicker />}
+                            </div>
+                        </div>
+                    </>
+                    :
+                    <>
+                        <div className={styles.messageHeader}>
+                            <div className={styles.messageHeaderCenter}>
+                                Details
+                            </div>
+                            <div className={styles.messageHeaderRight}>
+                                <i className="fa-solid fa-circle-info"
+                                    onClick={() => setDetailView(!detailView)}></i>
+                            </div>
+                        </div>
+                        <div className={styles.detailMute}>
+                            <input type="checkbox" />
+                            <div>Mute message</div>
+                        </div>
+                        <div className={styles.detailMem}>
+                            <div className={styles.detailMemText}>Members</div>
+                            <div>
+                                <Avatar sx={{ width: 18, height: 18 }} />
+                            <div className={styles.detailUser}>
+                               {
+                                user
+                            } 
+                            </div>
+                            
+                                </div> 
+                            
+                        </div>
+                        <div className={styles.detailContainer}>
+                            <div className={styles.detailFuncs}>
+                                Delete Chat
+                            </div>
+                            <div className={styles.detailFuncs}>
+                                Block
+                            </div>
+                            <div className={styles.detailFuncs}>
+                                Report
+                            </div>
+                        </div>
+                    </>
+            }
         </div>
     )
 }

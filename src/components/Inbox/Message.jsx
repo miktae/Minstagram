@@ -2,9 +2,43 @@ import React, { useState } from 'react';
 import Avatar from "@material-ui/core/Avatar";
 import styles from "./Message.module.css";
 import { converttoDateandTime } from "../../moment";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase";
+import {
+    doc,
+    updateDoc
+} from "firebase/firestore";
 
 const MessageMore = (props) => {
+    const onUnsendMessage = async (id) => {
+        let confirm = window.confirm("Are you sure you want to unsend this message?");
+        if (confirm) {
+            try {
+                await updateDoc(doc(db, auth.currentUser.uid + "'s_chats", id), {
+                    user: auth.currentUser.uid,
+                    message: "You unsent a message",
+                    fileUrl: "",
+                    unsent: true
+                })
+            } catch (err) {
+                alert(err)
+            }
+        }
+    }
+
+    const onReportMessage = async (id) => {
+        let confirm = window.confirm("Are you sure you want to report this message?");
+        if (confirm) {
+            try {
+                await updateDoc(doc(db, auth.currentUser.uid + "'s_chats", id), {
+                    user: auth.currentUser.uid,
+                    report: true
+                })
+            } catch (err) {
+                alert(err)
+            }
+        }
+    }
+
     return (
         <div className={styles.more}>
             {
@@ -21,9 +55,16 @@ const MessageMore = (props) => {
                         <div className={styles.more_item}>
                             Copy
                         </div>
-                        <div className={styles.more_item}>
+                        <div className={styles.more_item}
+                            onClick={() => {
+                                if (props.action == 'Unsend') {
+                                    onUnsendMessage(props.id)
+                                }
+                                else {
+                                    onReportMessage(props.id)
+                                }
+                            }}>
                             {props.action}
-
                         </div>
                     </div>
                     <div className={styles.triangle}
@@ -48,7 +89,15 @@ const TextMessage = (props) => {
         <div className={props.user == auth.currentUser.uid
             ? styles.messageText
             : styles.messageTextOther}
-            onMouseOver={() => setIsHover(true)}
+            style={props.message === "You unsent a message"
+                ? {
+                    backgroundColor: "#fff",
+                    border: "1px solid #e0e0e0",
+                    fontWeight: 200,
+                    color: "#BCC0C4"
+                }
+                : {}}
+            onMouseOver={props.onMouseOver}
         >
             {props.message}
         </div>
@@ -72,6 +121,7 @@ export default function Message(props) {
                 {
                     props.user == auth.currentUser.uid
                     && isHover && <MessageMore
+                        id={props.id}
                         action="Unsend" marginLeft="90%"
                         hover={isHover}
                         handleClick={() => setClick(!isClick)}
@@ -93,8 +143,8 @@ export default function Message(props) {
                         <a href={props.fileUrl} alt="">
                             {
                                 props.fileType == "image/png" || props.fileType == "image/jpeg" || props.fileType == "image/jpg"
-                                    
-                                ? <img width="100rem" height="100rem"
+
+                                    ? <img width="100rem" height="100rem"
                                         src={props.fileUrl} className={styles.img} />
                                     :
                                     props.fileType == "video/mp4" || props.fileType == "video/webm"
@@ -104,11 +154,10 @@ export default function Message(props) {
                                         || props.fileType == "video/x-msvideo"
                                         || props.fileType == "video/x-ms-wmv"
                                         ? <video width="40%" height="40%"
-                                            src={props.fileUrl} controls style={ 
-                                                props.user != auth.currentUser.uid && { marginLeft: "2%" }}/>
+                                            src={props.fileUrl} controls />
                                         : <div className={styles.fileEm}>
                                             <div className={styles.fileName}>
-                                                  {props.fileName} 
+                                                {props.fileName}
                                             </div>
                                             <embed src={props.fileUrl} alt="file"
                                                 frameBorder="0"
@@ -124,11 +173,13 @@ export default function Message(props) {
                 {
                     props.message &&
                     <TextMessage user={props.user}
-                        message={props.message} />
+                        message={props.message}
+                        onMouseOver={() => setIsHover(true)} />
                 }
                 {
                     props.user != auth.currentUser.uid
                     && isHover && <MessageMore
+                        id={props.id}
                         action="Report" marginLeft="6%"
                         hover={isHover}
                         handleClick={() => setClick(!isClick)}

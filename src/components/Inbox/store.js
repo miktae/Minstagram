@@ -13,6 +13,12 @@ const useStore = create((set) => ({
             {
                 audioView: view
             })),
+    openPostView: false,
+    setOpenPostView: (view) => set(
+        (state) => (
+            {
+                openPostView: view
+            })),
 }))
 
 export default useStore

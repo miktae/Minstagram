@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import PostItem from "./PostItem";
-import { db } from "../firebase";
+import PostItem from "./Post/PostItem";
+import { auth, db } from "../firebase";
 import {
     collection,
     onSnapshot,
@@ -10,7 +10,8 @@ import {
 
 function Home() {
     const [posts, setPosts] = useState([]);
-    const postsCollectionRef = collection(db, "posts");
+    const postsCollectionRef = collection(db,
+         auth.currentUser.displayName + "'s_posts");
     const q = query(postsCollectionRef, orderBy('timestamp', 'desc'));
 
     useEffect(() => onSnapshot(q, (snapshot) => {
@@ -18,6 +19,7 @@ function Home() {
             ...doc.data(),
             id: doc.id
         })))
+        // console.log(posts)
     }), []);
 
     return (

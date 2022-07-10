@@ -103,3 +103,47 @@ i.fa-solid.fa-face-smile {
     top: 0.2rem;
     left: 0rem
 }
+.form-title {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #000;
+}
+.bx-x{
+    font-size: 2rem;
+    cursor: pointer;
+}
+.form-h1{
+    font-size: 1.3rem;
+}
+.form-next {
+    font-size: 1.3rem;
+    color: rgba(5, 84, 255, 0.835)
+}
+.form-next:hover{
+    cursor: pointer;
+}
+.form-to{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #000;
+}
+.form-to label{
+    font-weight: 600;
+    margin-right: 1rem;
+}
+.form-to input[type="text"], input[type="text"]:focus{
+    border: none !important;
+    padding: 8px 9px;
+}
+.form-user{
+    display: flex;
+    align-items: center;
+}
+.form-user p{
+    padding-left: 2%;
+}

@@ -19,6 +19,13 @@
     align-items: center;
 }
 
+.messageHeaderCenter {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    font-weight: 600;
+}
+
 .headerAvatar {
     margin-right: 6%;
 }
@@ -94,4 +101,33 @@ textarea.messageInput {
 
 .messageSend:hover {
     color: #002fff;
+}
+.detailMute, .detailContainer{
+    display: flex;
+    padding: 3%;
+    border-bottom: 1px solid #c5c3c3;
+}
+.detailContainer{
+    flex-direction: column;
+    color: red;
+}
+.detailFuncs{
+    margin-bottom: 3%;
+    cursor: pointer;
+}
+.detailMem{
+    padding: 3%;
+    border-bottom: 1px solid #c5c3c3;
+}
+.detailMemText{
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 2%;
+}
+.detailMem div{
+    display: flex;
+    align-items: center;
+}
+.detailUser{
+    margin-left: 1%;
 }
